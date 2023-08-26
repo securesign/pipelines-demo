@@ -1,0 +1,28 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: verify-commit-signature-task
+spec:
+  params:
+    - name: fulcio-url
+      type: string
+    - name: rekor-url
+      type: string
+    - name: keycloak-url
+      type: string
+  steps:
+  - name: git-verify
+    image: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8:v1.10.4-4
+    workingDir: /workspace
+    script: |
+      set -x
+
+      ls secrets/
+      # gpg --import /workspace/secrets/public.key
+
+      # git config --global --add safe.directory /workspace/repository
+
+      # git verify-commit HEAD || (echo "Unable to verify commit at HEAD!" && exit 1)
+  workspaces:
+  - name: repository
+  - name: secrets

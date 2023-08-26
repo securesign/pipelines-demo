@@ -1,0 +1,39 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: securesign-event-listener
+spec:
+  resources:
+    kubernetesResource:
+      replicas: 1
+  serviceAccountName: pipeline
+  triggers: 
+    - bindings:
+        - kind: TriggerBinding
+          ref: github-push-triggerbinding
+        - kind: TriggerBinding
+          ref: securesign-triggerbinding
+      interceptors:
+        - params:
+            - name: secretRef
+              value:
+                secretKey: webhook-secret-key
+                secretName: webhook-secret-securesign-pipelines-demo
+          ref:
+            kind: ClusterInterceptor
+            name: github
+        - params:
+            - name: filter 
+              value: >-
+                (header.match('X-GitHub-Event', 'push') &&
+                body.repository.full_name == 'securesign/pipelines-demo')
+            - name: overlays
+              value:
+                - expression: 'body.ref.split(''/'')[2]'
+                  key: ref
+          ref:
+            kind: ClusterInterceptor
+            name: cel
+      name: securesign-trigger
+      template: 
+        ref: securesign-triggertemplate

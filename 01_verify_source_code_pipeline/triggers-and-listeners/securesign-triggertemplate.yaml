@@ -1,0 +1,85 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: securesign-triggertemplate
+spec:
+  params: 
+    - description: The git repository URL.
+      name: gitrepositoryurl
+    - description: The repository name for this PullRequest.
+      name: fullname
+    - description: The git branch for this PR.
+      name: io.openshift.build.commit.ref
+    - description: the specific commit SHA.
+      name: io.openshift.build.commit.id
+    - description: The date at which the commit was made
+      name: io.openshift.build.commit.date
+    - description: The commit message
+      name: io.openshift.build.commit.message
+    - description: The name of the github user handle that made the commit
+      name: io.openshift.build.commit.author
+    - description: The host name of the git repo
+      name: gitRepoHost
+    - description: Enable image repository TLS certification verification.
+      name: tlsVerify
+    - description: Extra parameters passed for the push command when pushing images.
+      name: build_extra_args
+    - description: Target image repository name
+      name: imageRepo
+    - description: The route for the instance of fulcio to use.
+      name: fulcio-url
+    - description: The route for the instance of rekor to use.
+      name: rekor-url
+    - description: The route for the instance of keycloak to use.
+      name: keycloak-url
+  resourcetemplates: 
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: securesign-
+      spec:
+        params: 
+          - name: REPO_HOST
+            value: $(tt.params.gitRepoHost)
+          - name: GIT_REPO
+            value: $(tt.params.gitrepositoryurl)
+          - name: TLSVERIFY
+            value: $(tt.params.tlsVerify)
+          - name: BUILD_EXTRA_ARGS
+            value: $(tt.params.build_extra_args)
+          - name: IMAGE_REPO
+            value: $(tt.params.imageRepo)
+          - name: IMAGE_TAG
+            value: >-
+              $(tt.params.io.openshift.build.commit.ref)-$(tt.params.io.openshift.build.commit.id)
+          - name: COMMIT_SHA
+            value: $(tt.params.io.openshift.build.commit.id)
+          - name: GIT_REF
+            value: $(tt.params.io.openshift.build.commit.ref)
+          - name: COMMIT_DATE
+            value: $(tt.params.io.openshift.build.commit.date)
+          - name: COMMIT_AUTHOR
+            value: $(tt.params.io.openshift.build.commit.author)
+          - name: COMMIT_MESSAGE
+            value: $(tt.params.io.openshift.build.commit.message)
+          - name: FULCIO_URL
+            value: $(tt.params.fulcio-url)
+          - name: REKOR_URL
+            value: $(tt.params.rekor-url)
+          - name: KEYCLOAK_URL
+            value: $(tt.params.keycloak-url)
+        pipelineRef: 
+          name: verify-commit-signature-pipeline
+        serviceAccountName: pipeline 
+        workspaces: 
+          - name: shared-data
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 3Gi
+          - name: secrets
+            secret:
+              secretName: gregory-pereira-gpg-pub

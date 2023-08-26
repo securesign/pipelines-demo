@@ -1,0 +1,70 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: verify-commit-signature-pipeline
+spec:
+  params: 
+    - name: REPO_HOST
+      type: string
+    - name: COMMIT_SHA
+      type: string
+    - name: TLSVERIFY
+      type: string
+    - name: BUILD_EXTRA_ARGS
+      type: string
+    - name: IMAGE_REPO
+      type: string
+    - name: IMAGE_TAG
+      type: string
+    - name: GIT_REF
+      type: string
+    - name: COMMIT_DATE
+      type: string
+    - name: COMMIT_AUTHOR
+      type: string
+    - name: COMMIT_MESSAGE
+      type: string
+    - name: GIT_REPO
+      type: string
+    - name: FULCIO_URL
+      type: string
+    - name: REKOR_URL
+      type: string
+    - name: KEYCLOAK_URL
+      type: string
+  tasks: 
+    - name: pull-source-code 
+      params:
+        - name: url 
+          value: $(params.GIT_REPO)
+        - name: revision
+          value: $(params.GIT_REF)
+        - name: deleteExisting
+          value: 'true'
+      taskRef: 
+        kind: ClusterTask
+        name: git-clone
+      workspaces: 
+        - name: output
+          workspace: shared-data
+    - name: verify-commit-signature
+      runAfter:
+        - pull-source-code 
+      params:
+        - name: fulcio-url
+          value: $(params.FULCIO_URL)
+        - name: rekor-url
+          value: $(params.REKOR_URL)
+        - name: keycloak-url
+          value: $(params.KEYCLOAK_URL)
+      taskRef:
+        kind: Task
+        name: verify-commit-signature-task
+      workspaces: 
+        - name: repository
+          workspace: shared-data
+        - name: secrets
+          workspace: secrets
+  workspaces:
+    - name: secrets 
+    - name: shared-data
