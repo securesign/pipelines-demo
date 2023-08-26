@@ -1,0 +1,12 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: build-and-sign-triggerbinding
+spec:
+  params:
+  - name: tlsVerify 
+    value: "true"
+  - name: imageRepo
+    value: "quay.io/grpereir/pacman"
+  - name: gitRepoHost 
+    value: "github.com"

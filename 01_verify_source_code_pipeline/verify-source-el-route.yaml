@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: el-verify-source
+spec:
+  host: el-verify-source.apps.open-svc-sts.k1wl.p1.openshiftapps.com
+  port:
+    targetPort: http-listener
+  to:
+    kind: Service
+    name: el-verify-source
+    weight: 100
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

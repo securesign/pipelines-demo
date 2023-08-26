@@ -1,0 +1,87 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: verify-source-code-pipeline
+spec:
+  params: 
+    - name: REPO_HOST
+      type: string
+    - name: COMMIT_SHA
+      type: string
+    - name: TLSVERIFY
+      type: string
+    - name: BUILD_EXTRA_ARGS
+      type: string
+    - name: IMAGE_REPO
+      type: string
+    - name: IMAGE_TAG
+      type: string
+    - name: GIT_REF
+      type: string
+    - name: COMMIT_DATE
+      type: string
+    - name: COMMIT_AUTHOR_EMAIL
+      type: string
+    - name: COMMIT_MESSAGE
+      type: string
+    - name: GIT_REPO
+      type: string
+    - name: FULCIO_URL
+      type: string
+    - name: FULCIO_CRT_PEM_URL
+      type: string
+    - name: REKOR_URL
+      type: string
+    - name: ISSUER_URL
+      type: string 
+    - name: TUFF_MIRROR
+      type: string
+    - name: TUFF_ROOT
+      type: string
+    - name: REKOR_PUBLIC_KEY
+      type: string
+  tasks: 
+    - name: pull-source-code 
+      params:
+        - name: url 
+          value: $(params.GIT_REPO)
+        - name: revision
+          value: $(params.GIT_REF)
+        - name: deleteExisting
+          value: 'true'
+      taskRef: 
+        kind: ClusterTask
+        name: git-clone
+      workspaces: 
+        - name: output
+          workspace: shared-data
+    - name: verify-commit-signature
+      runAfter:
+        - pull-source-code 
+      taskRef:
+        kind: Task
+        name: verify-commit-signature-task
+      params:
+        - name: fulcio-url
+          value: $(params.FULCIO_URL)
+        - name: fulcio-crt-pem-url
+          value: $(params.FULCIO_CRT_PEM_URL)
+        - name: rekor-url
+          value: $(params.REKOR_URL)
+        - name: issuer-url
+          value: $(params.ISSUER_URL)
+        - name: commit-author-email
+          value: $(params.COMMIT_AUTHOR_EMAIL)
+        - name: commit-date
+          value: $(params.COMMIT_DATE)
+        - name: tuff-mirror
+          value: $(params.TUFF_MIRROR)
+        - name: tuff-root
+          value: $(params.TUFF_ROOT)
+        - name: rekor-public-key
+          value: $(params.REKOR_PUBLIC_KEY)
+      workspaces: 
+        - name: repository
+          workspace: shared-data
+  workspaces:
+    - name: shared-data
