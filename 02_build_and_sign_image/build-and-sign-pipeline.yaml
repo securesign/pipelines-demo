@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: verify-source-code-pipeline
+  name: build-and-sign-pipeline
 spec:
   params: 
     - name: REPO_HOST
@@ -26,12 +26,6 @@ spec:
       type: string
     - name: GIT_REPO
       type: string
-    - name: FULCIO_URL
-      type: string
-    - name: REKOR_URL
-      type: string
-    - name: ISSUER_URL
-      type: string 
   tasks: 
     - name: pull-source-code 
       params:
@@ -50,21 +44,38 @@ spec:
     - name: verify-commit-signature
       runAfter:
         - pull-source-code 
+      params:
       taskRef:
         kind: Task
         name: verify-commit-signature-task
-      params:
-        - name: fulcio-url
-          value: $(params.FULCIO_URL)
-        - name: rekor-url
-          value: $(params.REKOR_URL)
-        - name: issuer-url
-          value: $(params.ISSUER_URL)
       workspaces: 
         - name: repository
           workspace: shared-data
         - name: secrets
           workspace: secrets
+    - name: build-sign-image
+      params:
+        - name: TLSVERIFY
+          value: $(params.TLSVERIFY)
+        - name: BUILD_EXTRA_ARGS
+          value: >-
+            --label=io.openshift.build.commit.author='$(params.COMMIT_AUTHOR)'
+            --label=io.openshift.build.commit.date='$(params.COMMIT_DATE)'
+            --label=io.openshift.build.commit.id='$(params.COMMIT_SHA)'
+            --label=io.openshift.build.commit.message='$(params.COMMIT_MESSAGE)'
+            --label=io.openshift.build.commit.ref='$(params.GIT_REF)'
+            --ulimit=nofile=4096:4096
+        - name: IMAGE
+          value: '$(params.IMAGE_REPO):$(params.IMAGE_TAG)'
+      retries: 1
+      runAfter:
+        - verify-commit-signature
+      taskRef:
+        kind: ClusterTask
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: shared-data
   workspaces:
     - name: secrets 
     - name: shared-data

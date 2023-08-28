@@ -1,12 +1,12 @@
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: securesign-triggerbinding
+  name: sigstore-triggerbinding
 spec:
   params:
     - name: fulcio-url
       value: "fulcio.apps.open-svc-sts.k1wl.p1.openshiftapps.com"
     - name: rekor-url
       value: rekor.apps.open-svc-sts.k1wl.p1.openshiftapps.com
-    - name: keycloak-url
+    - name: issuer-url
       value: "keycloak-keycloak.apps.open-svc-sts.k1wl.p1.openshiftapps.com"

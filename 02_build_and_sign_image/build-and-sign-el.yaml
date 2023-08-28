@@ -1,0 +1,39 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: build-and-sign
+spec:
+  resources:
+    kubernetesResource:
+      replicas: 1
+  serviceAccountName: pipeline
+  triggers: 
+    - bindings:
+        - kind: TriggerBinding
+          ref: github-push-triggerbinding
+        - kind: TriggerBinding
+          ref: build-and-sign-triggerbinding
+      interceptors:
+        - params:
+            - name: secretRef
+              value:
+                secretKey: webhook-secret-key
+                secretName: webhook-secret-securesign-fulcio
+          ref:
+            kind: ClusterInterceptor
+            name: github
+        - params:
+            - name: filter 
+              value: >-
+                (header.match('X-GitHub-Event', 'push') &&
+                body.repository.full_name == 'Gregory-Pereira/fulcio')
+            - name: overlays
+              value:
+                - expression: 'body.ref.split(''/'')[2]'
+                  key: ref
+          ref:
+            kind: ClusterInterceptor
+            name: cel
+      name: build-and-sign-triggertemplate
+      template: 
+        ref: build-and-sign-triggertemplate

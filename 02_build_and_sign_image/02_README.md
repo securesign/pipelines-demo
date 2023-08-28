@@ -1,0 +1,1 @@
+Need to remember to modify the `pipeline` serviceaccount with the ability to use my pullsecret

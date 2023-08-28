@@ -8,21 +8,46 @@ spec:
       type: string
     - name: rekor-url
       type: string
-    - name: keycloak-url
-      type: string
+    - name: issuer-url
+      type: string 
+  results:
+    - name: log-file
+      description: produce the log file as a task result
   steps:
-  - name: git-verify
+  - name: gitsign-verify
     image: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8:v1.10.4-4
     workingDir: /workspace
     script: |
-      set -x
+      set -x 
 
-      ls secrets/
-      # gpg --import /workspace/secrets/public.key
+      echo "" | tee $(results.log-file) # create existing results log file so doesnt throw error
 
-      # git config --global --add safe.directory /workspace/repository
+      curl https://github.com/sigstore/gitsign/releases/download/v0.7.0/gitsign_0.7.0_linux_amd64 > /workspace/gitsign
+      chmod +x /workspace/gitsign
 
-      # git verify-commit HEAD || (echo "Unable to verify commit at HEAD!" && exit 1)
+      # gpg --import /workspace/secrets/gpgpublickey
+      cd /workspace/repository/
+      ls -a
+      git config --global gpg.x509.program gitsign
+      # git config --global gitsign.logPath $(results.array-results.path)
+      git config --global gitsign.issuer $(params.issuer-url)
+      git config --global gitsign.rekor $(params.rekor-url)
+      git config --global gitsign.fulcio $(params.fulcio-url)
+
+      /workspace/gitsign verify --certificate-identity=grpereir@redhat.com --certificate-oidc-issuer=https://accounts.google.com HEAD
+
+  # - name: git-verify
+  #   image: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8:v1.10.4-4
+  #   workingDir: /workspace
+  #   script: |
+  #     set -x
+
+  #     ls secrets/
+  #     gpg --import /workspace/secrets/gpgpublickey
+
+  #     git config --global --add safe.directory /workspace/repository
+  #     cd /workspace/repository
+  #     git verify-commit HEAD || (echo "Unable to verify commit at HEAD!" && exit 1)
   workspaces:
   - name: repository
   - name: secrets

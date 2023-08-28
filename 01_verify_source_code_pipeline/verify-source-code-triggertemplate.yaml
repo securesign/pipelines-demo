@@ -1,7 +1,7 @@
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
-  name: securesign-triggertemplate
+  name: verify-source-code-triggertemplate
 spec:
   params: 
     - description: The git repository URL.
@@ -26,17 +26,17 @@ spec:
       name: build_extra_args
     - description: Target image repository name
       name: imageRepo
-    - description: The route for the instance of fulcio to use.
+    - description: URL for the fulcio instance you wish to use.
       name: fulcio-url
-    - description: The route for the instance of rekor to use.
+    - description: URL for the rekor instance you wish to use.
       name: rekor-url
-    - description: The route for the instance of keycloak to use.
-      name: keycloak-url
+    - description: URL for the OIDC Issuer instance you wish to use.
+      name: issuer-url
   resourcetemplates: 
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
-        generateName: securesign-
+        generateName: securesign-verify-source-code-
       spec:
         params: 
           - name: REPO_HOST
@@ -66,10 +66,10 @@ spec:
             value: $(tt.params.fulcio-url)
           - name: REKOR_URL
             value: $(tt.params.rekor-url)
-          - name: KEYCLOAK_URL
-            value: $(tt.params.keycloak-url)
+          - name: ISSUER_URL
+            value: $(tt.params.issuer-url)
         pipelineRef: 
-          name: verify-commit-signature-pipeline
+          name: verify-source-code-pipeline
         serviceAccountName: pipeline 
         workspaces: 
           - name: shared-data

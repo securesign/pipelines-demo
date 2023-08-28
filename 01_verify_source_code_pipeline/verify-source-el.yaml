@@ -1,7 +1,7 @@
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: securesign-event-listener
+  name: verify-source
 spec:
   resources:
     kubernetesResource:
@@ -12,7 +12,7 @@ spec:
         - kind: TriggerBinding
           ref: github-push-triggerbinding
         - kind: TriggerBinding
-          ref: securesign-triggerbinding
+          ref: sigstore-triggerbinding
       interceptors:
         - params:
             - name: secretRef
@@ -34,6 +34,6 @@ spec:
           ref:
             kind: ClusterInterceptor
             name: cel
-      name: securesign-trigger
+      name: verify-source-code-trigger
       template: 
-        ref: securesign-triggertemplate
+        ref: verify-source-code-triggertemplate
