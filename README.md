@@ -13,4 +13,4 @@ There are three specific examples this repository attempts to demonstrate.
 
 Dependencies: These tutorials require an openshift cluster with openshift pipelines already installed.
 
-Testing.
+This commit must be made with gitsign.
