@@ -1,4 +1,4 @@
-apiVersion: triggers.tekton.dev/v1beta1
+apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
   name: github-push-triggerbinding
@@ -16,5 +16,7 @@ spec:
       value: $(body.head_commit.timestamp)
     - name: io.openshift.build.commit.message
       value: $(body.head_commit.message)
-    - name: io.openshift.build.commit.author
-      value: $(body.head_commit.author.name)
+    - name: io.openshift.build.commit.author.email
+      value: $(body.head_commit.author.email)
+    # - name: commits 
+    #   value: $(body.commits)

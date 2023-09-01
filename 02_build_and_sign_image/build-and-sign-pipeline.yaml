@@ -20,7 +20,7 @@ spec:
       type: string
     - name: COMMIT_DATE
       type: string
-    - name: COMMIT_AUTHOR
+    - name: COMMIT_AUTHOR_EMAIL
       type: string
     - name: COMMIT_MESSAGE
       type: string
@@ -59,7 +59,7 @@ spec:
           value: $(params.TLSVERIFY)
         - name: BUILD_EXTRA_ARGS
           value: >-
-            --label=io.openshift.build.commit.author='$(params.COMMIT_AUTHOR)'
+            --label=io.openshift.build.commit.author='$(params.COMMIT_AUTHOR_EMAIL)'
             --label=io.openshift.build.commit.date='$(params.COMMIT_DATE)'
             --label=io.openshift.build.commit.id='$(params.COMMIT_SHA)'
             --label=io.openshift.build.commit.message='$(params.COMMIT_MESSAGE)'
