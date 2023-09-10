@@ -14,8 +14,6 @@ spec:
       type: string
     - name: commit-date
       type: string
-    # - name: commits
-    #   type: string
   results:
     - name: log-file
       description: produce the log file as a task result
@@ -24,15 +22,17 @@ spec:
     image: registry.redhat.io/rhel8/go-toolset@sha256:e059e813125f3beee236b0499cfae8d68716d925cffda327e4a09b465832960b
     workingDir: /workspace
     script: |
+      go version
       go install -v github.com/sigstore/rekor/cmd/rekor-cli@latest
       go install github.com/itchyny/gojq/cmd/gojq@latest
 
       set -x 
       alias rekor-cli=/opt/app-root/src/go/bin/rekor-cli
       alias jq=/opt/app-root/src/go/bin/gojq
+
       cd /workspace/repository/
       uuids=$(rekor-cli search --rekor_server=$(params.rekor-url) --email=$(params.commit-author-email))
-
+      git config --global --add safe.directory /workspace/repository
       IFS=$'\n'
       uuids_array=()
       while read -r line; do
@@ -42,7 +42,7 @@ spec:
 
       echo "log entry count:" ${#uuids_array[@]}
 
-      if [ ${#uuids_array[@]} -eq 0 ]; then
+      if [[ ${#uuids_array[@]} -eq 0 ]]; then
         echo "Could not find any entries in the speicifed rekor instance signed with same email as the author of these commits."
         echo "Please verify these details are correct and retry: "
         echo "\t rekor-server: $(params.rekor-url)"
@@ -50,7 +50,6 @@ spec:
         exit 1;
       else
         commit_date=$(date -d '$(params.commit-date)' +"%s")
-        echo $commit_date
         mkdir /workspace/entries
         rekor_entries=()
         for uuid in "${uuids_array[@]}"; do
@@ -61,32 +60,45 @@ spec:
         correct_rekor_entry=""
         for entry in "${rekor_entries[@]}"; do
           entryIntegratedTime=$(echo $entry | jq .IntegratedTime)
-          if [ $commit_date > $entryIntegratedTime ]; then
+          if [[ $commit_date -gt $entryIntegratedTime ]]; then
             timeDiff=$((commit_date - entryIntegratedTime))
-          elif [$entryIntegratedTime > $commit_date ]; then
+          elif [[ $entryIntegratedTime -gt $commit_date ]]; then
             timeDiff=$((entryIntegratedTime - commit_date))
           fi
 
-          if [ $timeDiff <= 6000 ]; then
+          if [[ $timeDiff -lt 600000 ]]; then #adjust this to 300
             correct_rekor_entry=$(echo $entry | jq .UUID)
           fi
         done;
         
-        if [ correct_rekor_entry != "" ]; then
-          sig=$(rekor-cli get --uuid=$correct_rekor_entry --format=json | jq -r .Body.HashedRekordObj.signature.content)
-          cert=$(rekor-cli get --uuid=$correct_rekor_entry --format=json | jq -r .Body.HashedRekordObj.signature.publicKey.content)
-          cosign verify-blob --cert <(echo $cert | base64 --decode) --signature <(echo $sig | base64 --decode) <(git rev-parse HEAD | tr -d '\n')
+        echo $correct_rekor_entry
+        if [[ -n $correct_rekor_entry ]]; then
+          correct_rekor_entry="${correct_rekor_entry:1}"
+          correct_rekor_entry="${correct_rekor_entry::-1}"
+          cert=$(rekor-cli get --rekor_server=$(params.rekor-url) --uuid=$correct_rekor_entry --format=json | jq .Body.HashedRekordObj.signature.publicKey.content)
+          cert="${cert:1}"
+          cert="${cert::-1}"
+          cert=$(echo $cert | base64 -d | openssl x509 -text)
+          echo $cert > ./rekor-cert
+          # git_sig=$(git cat-file commit HEAD | sed -n '/BEGIN/, /END/p' | sed 's/^ //g' | sed 's/gpgsig //g' | sed 's/SIGNED MESSAGE/PKCS7/g' | openssl pkcs7 -print -print_certs -text)
+          # echo $git_sig > ./git-sig
+
+          gpg --import /workspace/secrets/gpgpublickey
+          # gpg --import /workspace/secrets/public.key
+          git verify-commit HEAD || (echo "Unable to verify commit at HEAD!" && exit 1)
+          
+          # if [[ $(grep -Fvf "./rekor-cert" $git_sig) ]]; then
+          #   echo "certificate from rekor is a subset of git signature. Verified"
+          #   exit 0
+          # else  
+          #   "error"
+          #   exi 1
+          # fi
         else
           echo "could not find a rekor entry within within 5 minutes of the commit date. Potential issues: redelivery of webhook event, event listener failed to start pipeline, etc."
           exit 1
         fi
-
-
       fi
-
-      
-  #      rekor-cli get --uuid=1fa259b741681a81850fd95f9569a0992356ebc87bbafad464b0314a5b67507a9e554bc82297e7ad --rekor_server https://rekor.apps.open-svc-sts.k1wl.p1.openshiftapps.com/
-  #     # /workspace/gitsign verify --certificate-identity=grpereir@redhat.com --certificate-oidc-issuer=https://accounts.google.com HEAD
   workspaces:
   - name: repository
   - name: secrets
