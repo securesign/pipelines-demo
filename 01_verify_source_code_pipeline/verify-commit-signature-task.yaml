@@ -4,12 +4,19 @@ metadata:
   name: verify-commit-signature-task
 spec:
   params:
+    # INCLUDE https://tuf.apps.open-svc-sts.k1wl.p1.openshiftapps.com/targets/fulcio_v1.crt.pem
     - name: fulcio-url
       type: string
     - name: rekor-url
       type: string
     - name: issuer-url
       type: string 
+    - name: tuff-mirror
+      type: string
+    - name: tuff-root
+      type: string
+    - name: rekor-public-key
+      type: string
     - name: commit-author-email
       type: string
     - name: commit-date
@@ -25,10 +32,20 @@ spec:
       go version
       go install -v github.com/sigstore/rekor/cmd/rekor-cli@latest
       go install github.com/itchyny/gojq/cmd/gojq@latest
-
+      go install github.com/sigstore/gitsign@latest
+      curl https://github.com/sigstore/cosign/releases/download/v2.2.0/cosign-linux-amd64 > /workspace/cosign
+      chmod +x /workspace/cosign
+      
       set -x 
       alias rekor-cli=/opt/app-root/src/go/bin/rekor-cli
       alias jq=/opt/app-root/src/go/bin/gojq
+      alias cosign=/workspace/cosign
+      alias gitsign=/opt/app-root/src/go/bin/gitsign
+
+      cosign version
+      cosign initialize --mirror=$(params.tuff-mirror) --root=$(params.tuff-root) -d
+      ls -al /opt/app-root/src
+      
 
       cd /workspace/repository/
       uuids=$(rekor-cli search --rekor_server=$(params.rekor-url) --email=$(params.commit-author-email))
@@ -73,27 +90,20 @@ spec:
         
         echo $correct_rekor_entry
         if [[ -n $correct_rekor_entry ]]; then
-          correct_rekor_entry="${correct_rekor_entry:1}"
-          correct_rekor_entry="${correct_rekor_entry::-1}"
-          cert=$(rekor-cli get --rekor_server=$(params.rekor-url) --uuid=$correct_rekor_entry --format=json | jq .Body.HashedRekordObj.signature.publicKey.content)
-          cert="${cert:1}"
-          cert="${cert::-1}"
-          cert=$(echo $cert | base64 -d | openssl x509 -text)
-          echo $cert > ./rekor-cert
-          # git_sig=$(git cat-file commit HEAD | sed -n '/BEGIN/, /END/p' | sed 's/^ //g' | sed 's/gpgsig //g' | sed 's/SIGNED MESSAGE/PKCS7/g' | openssl pkcs7 -print -print_certs -text)
-          # echo $git_sig > ./git-sig
-
-          gpg --import /workspace/secrets/gpgpublickey
-          # gpg --import /workspace/secrets/public.key
-          git verify-commit HEAD || (echo "Unable to verify commit at HEAD!" && exit 1)
-          
-          # if [[ $(grep -Fvf "./rekor-cert" $git_sig) ]]; then
-          #   echo "certificate from rekor is a subset of git signature. Verified"
-          #   exit 0
-          # else  
-          #   "error"
-          #   exi 1
-          # fi
+          export GITSIGN_FULCIO_ROOT="$HOME/.sigstore/root/targets/fulcio_v1.crt.pem"
+          export SIGSTORE_REKOR_PUBLIC_KEY="$(params.rekor-public-key)"
+          export GITSIGN_FULCIO_URL="$(params.fulcio-url)"
+          export GITSIGN_OIDC_ISSUER="$(params.issuer-url)"
+          export GITSIGN_REKOR_URL="$(params.rekor-url)"
+          git config --local --add gpg.program gpg
+          git config --local --add gpg.format x509
+          git config --local --add gpg.x509.program gitsign
+          git config --local --add commit.gpgsign true
+          git config --local --add gitsign.rekor $(params.rekor-url)
+          git config --local --add gitsign.fulcio $(params.fulcio-url)
+          git config --local --add gitsign.issuer $(params.issuer-url)
+          git log --name-status HEAD^..HEAD
+          gitsign verify --certificate-identity=$(params.commit-author-email) --certificate-oidc-issuer=$(params.issuer-url) HEAD
         else
           echo "could not find a rekor entry within within 5 minutes of the commit date. Potential issues: redelivery of webhook event, event listener failed to start pipeline, etc."
           exit 1

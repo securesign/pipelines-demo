@@ -32,8 +32,12 @@ spec:
       type: string
     - name: ISSUER_URL
       type: string 
-    # - name: COMMITS
-    #   type: string
+    - name: TUFF_MIRROR
+      type: string
+    - name: TUFF_ROOT
+      type: string
+    - name: REKOR_PUBLIC_KEY
+      type: string
   tasks: 
     - name: pull-source-code 
       params:
@@ -66,8 +70,12 @@ spec:
           value: $(params.COMMIT_AUTHOR_EMAIL)
         - name: commit-date
           value: $(params.COMMIT_DATE)
-        # - name: commits
-        #   value: $(params.COMMITS)
+        - name: tuff-mirror
+          value: $(params.TUFF_MIRROR)
+        - name: tuff-root
+          value: $(params.TUFF_ROOT)
+        - name: rekor-public-key
+          value: $(params.REKOR_PUBLIC_KEY)
       workspaces: 
         - name: repository
           workspace: shared-data

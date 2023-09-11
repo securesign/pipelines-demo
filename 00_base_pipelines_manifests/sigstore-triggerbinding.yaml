@@ -9,4 +9,10 @@ spec:
     - name: rekor-url
       value: "https://rekor.apps.open-svc-sts.k1wl.p1.openshiftapps.com/"
     - name: issuer-url
-      value: "keycloak-keycloak.apps.open-svc-sts.k1wl.p1.openshiftapps.com"
+      value: "https://keycloak-keycloak-system.apps.open-svc-sts.k1wl.p1.openshiftapps.com/auth/realms/sigstore"
+    - name: tuff-mirror
+      value: "https://tuf.apps.open-svc-sts.k1wl.p1.openshiftapps.com"
+    - name: tuff-root
+      value: "https://tuf.apps.open-svc-sts.k1wl.p1.openshiftapps.com/root.json"
+    - name: rekor-public-key
+      value: "https://tuf.apps.open-svc-sts.k1wl.p1.openshiftapps.com/targets/rekor.pub"
