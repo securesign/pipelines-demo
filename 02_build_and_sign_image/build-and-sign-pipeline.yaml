@@ -41,18 +41,6 @@ spec:
       workspaces: 
         - name: output
           workspace: shared-data
-    - name: verify-commit-signature
-      runAfter:
-        - pull-source-code 
-      params:
-      taskRef:
-        kind: Task
-        name: verify-commit-signature-task
-      workspaces: 
-        - name: repository
-          workspace: shared-data
-        - name: secrets
-          workspace: secrets
     - name: build-sign-image
       params:
         - name: TLSVERIFY
@@ -67,15 +55,16 @@ spec:
             --ulimit=nofile=4096:4096
         - name: IMAGE
           value: '$(params.IMAGE_REPO):$(params.IMAGE_TAG)'
+        - name: DOCKERFILE
+          value: "./docker/Dockerfile"
       retries: 1
-      runAfter:
-        - verify-commit-signature
       taskRef:
         kind: ClusterTask
         name: buildah
       workspaces:
         - name: source
           workspace: shared-data
+    - name: attest
+      params
   workspaces:
-    - name: secrets 
     - name: shared-data

@@ -18,6 +18,8 @@ spec:
       name: io.openshift.build.commit.message
     - description: The name of the github user handle that made the commit
       name: io.openshift.build.commit.author
+    - description: the email of the github user handle that made the commit
+      name: io.openshift.build.commit.author.email
     - description: The host name of the git repo
       name: gitRepoHost
     - description: Enable image repository TLS certification verification.
@@ -70,4 +72,4 @@ spec:
                     storage: 3Gi
           - name: secrets
             secret:
-              secretName: gregory-pereira-gpg-pub
+              secretName: grpereir-securesign-demo-pull-secret

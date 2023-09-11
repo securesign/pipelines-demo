@@ -7,6 +7,6 @@ spec:
   - name: tlsVerify 
     value: "true"
   - name: imageRepo
-    value: "grpereir/fulcio"
+    value: "quay.io/grpereir/pacman"
   - name: gitRepoHost 
     value: "github.com"

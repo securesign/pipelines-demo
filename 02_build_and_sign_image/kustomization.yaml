@@ -8,5 +8,21 @@ resources:
   - build-and-sign-triggertemplate.yaml
   - build-and-sign-el.yaml
   - build-and-sign-el-route.yaml
-  - grpereir-securesign-demo-sealed-secret.yaml
-  - webhook-sealed-secret-securesign-fulcio.yaml
+  - grpereir-securesign-demo-secret.yaml
+  - tektonChain.yaml
+  - webhook-secret-securesign-pacman.yaml
+# patches:
+# - target:
+#     kind: ServiceAccount
+#     name: pipeline
+#   patch: |-
+#     - op: add
+#       path: /secrets/1
+#       value: 
+#         name: name
+#         value: grpereir-securesign-demo-pull-secret
+#     - op: add
+#       path: /imagePullSecrets/1
+#       value: 
+#         name: name
+#         value: grpereir-securesign-demo-pull-secret

@@ -18,7 +18,8 @@ spec:
             - name: secretRef
               value:
                 secretKey: webhook-secret-key
-                secretName: webhook-secret-securesign-fulcio
+                # secretName: webhook-secret-securesign-pacman
+                secretName: webhook-secret-securesign-pipelines-demo
           ref:
             kind: ClusterInterceptor
             name: github
@@ -26,7 +27,7 @@ spec:
             - name: filter 
               value: >-
                 (header.match('X-GitHub-Event', 'push') &&
-                body.repository.full_name == 'Gregory-Pereira/fulcio')
+                body.repository.full_name == 'Gregory-Pereira/pacman')
             - name: overlays
               value:
                 - expression: 'body.ref.split(''/'')[2]'
