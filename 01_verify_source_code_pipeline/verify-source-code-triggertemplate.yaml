@@ -28,6 +28,8 @@ spec:
       name: imageRepo
     - description: URL for the fulcio instance you wish to use.
       name: fulcio-url
+    - description: URL for the fulcio_v1.crt.pem file.
+      name: fulcio-crt-pem-url
     - description: URL for the rekor instance you wish to use.
       name: rekor-url
     - description: URL for the OIDC Issuer instance you wish to use.
@@ -70,6 +72,8 @@ spec:
             value: $(tt.params.io.openshift.build.commit.message)
           - name: FULCIO_URL
             value: $(tt.params.fulcio-url)
+          - name: FULCIO_CRT_PEM_URL
+            value: $(tt.params.fulcio-crt-pem-url)
           - name: REKOR_URL
             value: $(tt.params.rekor-url)
           - name: ISSUER_URL

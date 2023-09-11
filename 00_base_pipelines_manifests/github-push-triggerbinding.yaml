@@ -18,5 +18,3 @@ spec:
       value: $(body.head_commit.message)
     - name: io.openshift.build.commit.author.email
       value: $(body.head_commit.author.email)
-    # - name: commits 
-    #   value: $(body.commits)

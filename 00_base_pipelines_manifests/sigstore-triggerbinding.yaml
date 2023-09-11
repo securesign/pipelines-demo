@@ -6,6 +6,8 @@ spec:
   params:
     - name: fulcio-url
       value: "https://fulcio.apps.open-svc-sts.k1wl.p1.openshiftapps.com/"
+    - name: fulcio-crt-pem-url
+      value: "https://tuf.apps.open-svc-sts.k1wl.p1.openshiftapps.com/targets/fulcio_v1.crt.pem"
     - name: rekor-url
       value: "https://rekor.apps.open-svc-sts.k1wl.p1.openshiftapps.com/"
     - name: issuer-url

@@ -34,10 +34,6 @@ spec:
           ref:
             kind: ClusterInterceptor
             name: cel
-        # - cel:
-        #     overlays:
-        #       - key: commits
-        #         expression: body.commits.marshalJSON()
       name: verify-source-code-trigger
       template: 
         ref: verify-source-code-triggertemplate

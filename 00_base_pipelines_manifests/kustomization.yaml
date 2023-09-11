@@ -3,6 +3,5 @@ kind: Kustomization
 namespace: securesign-pipelines-demo
 resources:
   - github-push-triggerbinding.yaml
-  - gregory-pereira-gpg-pub.yaml
   - namespace.yaml 
   - sigstore-triggerbinding.yaml

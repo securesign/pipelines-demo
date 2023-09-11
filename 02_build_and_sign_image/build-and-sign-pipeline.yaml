@@ -64,7 +64,5 @@ spec:
       workspaces:
         - name: source
           workspace: shared-data
-    - name: attest
-      params
   workspaces:
     - name: shared-data

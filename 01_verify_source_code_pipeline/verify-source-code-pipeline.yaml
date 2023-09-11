@@ -28,6 +28,8 @@ spec:
       type: string
     - name: FULCIO_URL
       type: string
+    - name: FULCIO_CRT_PEM_URL
+      type: string
     - name: REKOR_URL
       type: string
     - name: ISSUER_URL
@@ -62,6 +64,8 @@ spec:
       params:
         - name: fulcio-url
           value: $(params.FULCIO_URL)
+        - name: fulcio-crt-pem-url
+          value: $(params.FULCIO_CRT_PEM_URL)
         - name: rekor-url
           value: $(params.REKOR_URL)
         - name: issuer-url

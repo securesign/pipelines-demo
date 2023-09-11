@@ -8,9 +8,8 @@ resources:
   - build-and-sign-triggertemplate.yaml
   - build-and-sign-el.yaml
   - build-and-sign-el-route.yaml
-  - grpereir-securesign-demo-secret.yaml
+  - grpereir-securesign-demo-sealed-secret.yaml
   - tektonChain.yaml
-  - webhook-secret-securesign-pacman.yaml
 # patches:
 # - target:
 #     kind: ServiceAccount
