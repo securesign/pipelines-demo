@@ -39,15 +39,6 @@ spec:
       uname -a
 
       ## Installs
-      # Cosign installation
-      # set -x
-      # mkdir /workspace/cosign && cd /workspace/cosign
-      # git clone https://github.com/sigstore/cosign
-      # cd cosign
-      # go install ./cmd/cosign
-      # $(go env GOPATH)/bin/cosign
-      # exit 0
-      # go install github.com/sigstore/cosign/v2/cmd/cosign@latest
       go install github.com/sigstore/rekor/cmd/rekor-cli@latest
       go install github.com/itchyny/gojq/cmd/gojq@latest
       go install github.com/sigstore/gitsign@latest
@@ -87,7 +78,6 @@ spec:
         exit 1;
       else
         commit_date=$(date -d '$(params.commit-date)' +"%s")
-        # mkdir /workspace/entries
         rekor_entries=()
         for uuid in "${uuids_array[@]}"; do
           rekor_entry=$(rekor-cli get --rekor_server=$(params.rekor-url) --uuid=$uuid --format=json)
@@ -133,4 +123,3 @@ spec:
       fi
   workspaces:
   - name: repository
-  - name: secrets

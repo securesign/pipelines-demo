@@ -83,8 +83,5 @@ spec:
       workspaces: 
         - name: repository
           workspace: shared-data
-        - name: secrets
-          workspace: secrets
   workspaces:
-    - name: secrets 
     - name: shared-data
