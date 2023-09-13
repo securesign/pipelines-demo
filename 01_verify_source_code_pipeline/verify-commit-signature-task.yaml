@@ -28,15 +28,9 @@ spec:
       description: produce the log file as a task result
   steps:
   - name: search-rekor
-    # image: registry.redhat.io/rhel8/go-toolset@sha256:e059e813125f3beee236b0499cfae8d68716d925cffda327e4a09b465832960b
     image: registry.redhat.io/rhel9/go-toolset@sha256:f969e6a4fe53663f3fc8d0ddc17ec2fc3def2af8e68ce7061f016a598798f474
     workingDir: /workspace
     script: |
-
-
-      ## General logs
-      go version
-      uname -a
 
       ## Installs
       go install github.com/sigstore/rekor/cmd/rekor-cli@latest
@@ -49,13 +43,7 @@ spec:
       ## Alias setting
       alias rekor-cli=/opt/app-root/src/go/bin/rekor-cli
       alias jq=/opt/app-root/src/go/bin/gojq
-      ## alias cosign=/opt/app-root/src/go/bin/cosign
       alias gitsign=/opt/app-root/src/go/bin/gitsign
-
-      ## Cosign initalization and find Fulcio cert PEM
-      # cosign version
-      # cosign initialize --mirror=$(params.tuff-mirror) --root=$(params.tuff-root) -d
-      # ls -al ~
 
       ## Traversing the Rekor log to find the correct commit
       cd /workspace/repository/
@@ -93,7 +81,7 @@ spec:
             timeDiff=$((entryIntegratedTime - commit_date))
           fi
 
-          if [[ $timeDiff -lt 600000 ]]; then #adjust this to 300
+          if [[ $timeDiff -lt 300 ]]; then #adjust this to 300
             correct_rekor_entry=$(echo $entry | jq .UUID)
             # SORTING IMPLEMENTAITON GOES HERE
           fi
@@ -102,6 +90,8 @@ spec:
         echo $correct_rekor_entry
         if [[ -n $correct_rekor_entry ]]; then
           curl $(params.fulcio-crt-pem-url) > /workspace/fulcio_v1.crt.pem
+          curl https://tuf.apps.open-svc-sts.k1wl.p1.openshiftapps.com/targets/ctfe.pub > /workspace/ctfe.pub
+          export SIGSTORE_CT_LOG_PUBLIC_KEY_FILE="/workspace/ctfe.pub"
           export GITSIGN_FULCIO_ROOT="/workspace/fulcio_v1.crt.pem"
           export SIGSTORE_REKOR_PUBLIC_KEY="$(params.rekor-public-key)"
           export GITSIGN_FULCIO_URL="$(params.fulcio-url)"
