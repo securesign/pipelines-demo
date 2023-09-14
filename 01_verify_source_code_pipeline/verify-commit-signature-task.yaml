@@ -104,7 +104,6 @@ spec:
           git config --local gitsign.rekor $(params.rekor-url)
           git config --local gitsign.fulcio $(params.fulcio-url)
           git config --local gitsign.issuer $(params.issuer-url)
-          git config --local --list
           gitsign verify --certificate-identity=$(params.commit-author-email) --certificate-oidc-issuer=$(params.issuer-url) HEAD
         else
           echo "could not find a rekor entry within within 5 minutes of the commit date. Potential issues: redelivery of webhook event, event listener failed to start pipeline, etc."

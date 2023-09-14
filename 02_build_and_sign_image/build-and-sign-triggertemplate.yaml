@@ -28,6 +28,20 @@ spec:
       name: build_extra_args
     - description: Target image repository name
       name: imageRepo
+    # - description: URL for the fulcio instance you wish to use.
+    #   name: fulcio-url
+    # - description: URL for the fulcio_v1.crt.pem file.
+    #   name: fulcio-crt-pem-url
+    # - description: URL for the rekor instance you wish to use.
+    #   name: rekor-url
+    # - description: URL for the OIDC Issuer instance you wish to use.
+    #   name: issuer-url
+    # - description: URL for the tuff mirror.
+    #   name: tuff-mirror
+    # - description: URL for the tuff root.
+    #   name: tuff-root
+    # - description: URL for the rekor public key.
+    #   name: rekor-public-key
   resourcetemplates: 
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
@@ -58,6 +72,20 @@ spec:
             value: $(tt.params.io.openshift.build.commit.author.email)
           - name: COMMIT_MESSAGE
             value: $(tt.params.io.openshift.build.commit.message)
+          # - name: FULCIO_URL
+          #   value: $(tt.params.fulcio-url)
+          # - name: FULCIO_CRT_PEM_URL
+          #   value: $(tt.params.fulcio-crt-pem-url)
+          # - name: REKOR_URL
+          #   value: $(tt.params.rekor-url)
+          # - name: ISSUER_URL
+          #   value: $(tt.params.issuer-url)
+          # - name: TUFF_MIRROR
+          #   value: $(tt.params.tuff-mirror)
+          # - name: TUFF_ROOT
+          #   value: $(tt.params.tuff-root)
+          # - name: REKOR_PUBLIC_KEY
+          #   value: $(tt.params.rekor-public-key)
         pipelineRef: 
           name: build-and-sign-pipeline
         serviceAccountName: pipeline
