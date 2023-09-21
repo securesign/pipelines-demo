@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: el-build-and-sign
+spec:
+  host: el-build-and-sign.apps.open-svc-sts.k1wl.p1.openshiftapps.com
+  port:
+    targetPort: http-listener
+  to:
+    kind: Service
+    name: el-build-and-sign
+    weight: 100
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

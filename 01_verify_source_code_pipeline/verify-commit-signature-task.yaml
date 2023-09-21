@@ -1,0 +1,113 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: verify-commit-signature-task
+spec:
+  params:
+    - name: fulcio-url
+      type: string
+    - name: fulcio-crt-pem-url
+      type: string
+    - name: rekor-url
+      type: string
+    - name: issuer-url
+      type: string 
+    - name: tuff-mirror
+      type: string
+    - name: tuff-root
+      type: string
+    - name: rekor-public-key
+      type: string
+    - name: commit-author-email
+      type: string
+    - name: commit-date
+      type: string
+  results:
+    - name: log-file
+      description: produce the log file as a task result
+  steps:
+  - name: search-rekor
+    image: registry.redhat.io/rhel9/go-toolset@sha256:f969e6a4fe53663f3fc8d0ddc17ec2fc3def2af8e68ce7061f016a598798f474
+    workingDir: /workspace
+    script: |
+
+      ## Installs
+      go install github.com/sigstore/rekor/cmd/rekor-cli@latest
+      go install github.com/itchyny/gojq/cmd/gojq@latest
+      go install github.com/sigstore/gitsign@latest
+
+      ## Task Logging
+      set -x 
+
+      ## Alias setting
+      alias rekor-cli=/opt/app-root/src/go/bin/rekor-cli
+      alias jq=/opt/app-root/src/go/bin/gojq
+      alias gitsign=/opt/app-root/src/go/bin/gitsign
+
+      ## Traversing the Rekor log to find the correct commit
+      cd /workspace/repository/
+      uuids=$(rekor-cli search --rekor_server=$(params.rekor-url) --email=$(params.commit-author-email))
+      git config --global --add safe.directory /workspace/repository
+      IFS=$'\n'
+      uuids_array=()
+      while read -r line; do
+        uuids_array+=("$line")
+      done <<< "$uuids"
+      unset IFS
+
+      echo "log entry count:" ${#uuids_array[@]}
+
+      if [[ ${#uuids_array[@]} -eq 0 ]]; then
+        echo "Could not find any entries in the speicifed rekor instance signed with same email as the author of these commits."
+        echo "Please verify these details are correct and retry: "
+        echo "\t rekor-server: $(params.rekor-url)"
+        echo "\t commit-author-email: $(params.commit-author-email)"  
+        exit 1;
+      else
+        commit_date=$(date -d '$(params.commit-date)' +"%s")
+        rekor_entries=()
+        for uuid in "${uuids_array[@]}"; do
+          rekor_entry=$(rekor-cli get --rekor_server=$(params.rekor-url) --uuid=$uuid --format=json)
+          rekor_entries+=($rekor_entry)
+        done;
+        
+        correct_rekor_entry=""
+        for entry in "${rekor_entries[@]}"; do
+          entryIntegratedTime=$(echo $entry | jq .IntegratedTime)
+          if [[ $commit_date -gt $entryIntegratedTime ]]; then
+            timeDiff=$((commit_date - entryIntegratedTime))
+          elif [[ $entryIntegratedTime -gt $commit_date ]]; then
+            timeDiff=$((entryIntegratedTime - commit_date))
+          fi
+
+          if [[ $timeDiff -lt 300 ]]; then #adjust this to 300
+            correct_rekor_entry=$(echo $entry | jq .UUID)
+            # SORTING IMPLEMENTAITON GOES HERE
+          fi
+        done;
+        
+        echo $correct_rekor_entry
+        if [[ -n $correct_rekor_entry ]]; then
+          curl $(params.fulcio-crt-pem-url) > /workspace/fulcio_v1.crt.pem
+          curl https://tuf.apps.open-svc-sts.k1wl.p1.openshiftapps.com/targets/ctfe.pub > /workspace/ctfe.pub
+          export SIGSTORE_CT_LOG_PUBLIC_KEY_FILE="/workspace/ctfe.pub"
+          export GITSIGN_FULCIO_ROOT="/workspace/fulcio_v1.crt.pem"
+          export SIGSTORE_REKOR_PUBLIC_KEY="$(params.rekor-public-key)"
+          export GITSIGN_FULCIO_URL="$(params.fulcio-url)"
+          export GITSIGN_OIDC_ISSUER="$(params.issuer-url)"
+          export GITSIGN_REKOR_URL="$(params.rekor-url)"
+          git config --local tag.gpgsign true  # Sign all tags
+          git config --local gpg.x509.program gitsign  # Use gitsign for signing
+          git config --local gpg.format x509 
+          # git config --local --add commit.gpgsign true
+          git config --local gitsign.rekor $(params.rekor-url)
+          git config --local gitsign.fulcio $(params.fulcio-url)
+          git config --local gitsign.issuer $(params.issuer-url)
+          gitsign verify --certificate-identity=$(params.commit-author-email) --certificate-oidc-issuer=$(params.issuer-url) HEAD
+        else
+          echo "could not find a rekor entry within within 5 minutes of the commit date. Potential issues: redelivery of webhook event, event listener failed to start pipeline, etc."
+          exit 1
+        fi
+      fi
+  workspaces:
+  - name: repository

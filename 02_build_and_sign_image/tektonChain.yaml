@@ -1,0 +1,16 @@
+apiVersion: operator.tekton.dev/v1alpha1
+kind: TektonChain
+metadata:
+  name: chain
+spec:
+  targetNamespace: openshift-pipelines
+  artifacts.oci.format: simplesigning
+  artifacts.oci.storage: oci
+  artifacts.oci.signer: x509
+  artifacts.taskrun.format: in-toto 
+  artifacts.taskrun.storage: oci
+  artifacts.taskrun.signer: x509
+  transparency.enabled: true
+  transparency.url: "https://rekor.apps.open-svc-sts.k1wl.p1.openshiftapps.com"
+  signers.x509.fulcio.enabled: true
+  signers.x509.fulcio.address: "https://fulcio.apps.open-svc-sts.k1wl.p1.openshiftapps.com"
