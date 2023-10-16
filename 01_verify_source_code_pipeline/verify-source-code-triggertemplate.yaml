@@ -34,12 +34,14 @@ spec:
       name: rekor-url
     - description: URL for the OIDC Issuer instance you wish to use.
       name: issuer-url
-    - description: URL for the tuff mirror.
-      name: tuff-mirror
-    - description: URL for the tuff root.
-      name: tuff-root
+    - description: URL for the tuf mirror.
+      name: tuf-mirror
+    - description: URL for the tuf root.
+      name: tuf-root
     - description: URL for the rekor public key.
       name: rekor-public-key
+    - description: URL for the ctfe public key
+      name: ctfe-public-key
   resourcetemplates: 
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
@@ -78,12 +80,14 @@ spec:
             value: $(tt.params.rekor-url)
           - name: ISSUER_URL
             value: $(tt.params.issuer-url)
-          - name: TUFF_MIRROR
-            value: $(tt.params.tuff-mirror)
-          - name: TUFF_ROOT
-            value: $(tt.params.tuff-root)
+          - name: tuf_MIRROR
+            value: $(tt.params.tuf-mirror)
+          - name: tuf_ROOT
+            value: $(tt.params.tuf-root)
           - name: REKOR_PUBLIC_KEY
             value: $(tt.params.rekor-public-key)
+          - name: CTFE_PUBLIC_KEY
+            value: $(tt.params.ctfe-public-key)
         pipelineRef: 
           name: verify-source-code-pipeline
         serviceAccountName: pipeline 

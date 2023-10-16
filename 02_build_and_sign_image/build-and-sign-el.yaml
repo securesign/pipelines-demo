@@ -14,7 +14,7 @@ spec:
         - kind: TriggerBinding
           ref: build-and-sign-triggerbinding
         # - kind: TriggerBinding
-        #   ref: sigstore-triggerbinding
+        #   ref: trusted-artifact-signer-triggerbinding
       interceptors:
         - params:
             - name: secretRef

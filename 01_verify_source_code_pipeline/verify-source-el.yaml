@@ -12,7 +12,7 @@ spec:
         - kind: TriggerBinding
           ref: github-push-triggerbinding
         - kind: TriggerBinding
-          ref: sigstore-triggerbinding
+          ref: trusted-artifact-signer-triggerbinding
       interceptors:
         - params:
             - name: secretRef

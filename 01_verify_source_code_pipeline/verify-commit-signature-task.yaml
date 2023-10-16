@@ -12,15 +12,17 @@ spec:
       type: string
     - name: issuer-url
       type: string 
-    - name: tuff-mirror
+    - name: tuf-mirror
       type: string
-    - name: tuff-root
+    - name: tuf-root
       type: string
     - name: rekor-public-key
       type: string
     - name: commit-author-email
       type: string
     - name: commit-date
+      type: string
+    - name: ctfe-public-key
       type: string
   results:
     - name: log-file
@@ -89,7 +91,7 @@ spec:
         echo $correct_rekor_entry
         if [[ -n $correct_rekor_entry ]]; then
           curl $(params.fulcio-crt-pem-url) > /workspace/fulcio_v1.crt.pem
-          curl https://tuf.apps.open-svc-sts.k1wl.p1.openshiftapps.com/targets/ctfe.pub > /workspace/ctfe.pub
+          curl $(params.ctfe-public-key) > /workspace/ctfe.pub
           export SIGSTORE_CT_LOG_PUBLIC_KEY_FILE="/workspace/ctfe.pub"
           export GITSIGN_FULCIO_ROOT="/workspace/fulcio_v1.crt.pem"
           export SIGSTORE_REKOR_PUBLIC_KEY="$(params.rekor-public-key)"
