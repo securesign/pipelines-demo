@@ -34,11 +34,13 @@ spec:
       type: string
     - name: ISSUER_URL
       type: string 
-    - name: TUFF_MIRROR
+    - name: tuf_MIRROR
       type: string
-    - name: TUFF_ROOT
+    - name: tuf_ROOT
       type: string
     - name: REKOR_PUBLIC_KEY
+      type: string
+    - name: CTFE_PUBLIC_KEY
       type: string
   tasks: 
     - name: pull-source-code 
@@ -74,12 +76,14 @@ spec:
           value: $(params.COMMIT_AUTHOR_EMAIL)
         - name: commit-date
           value: $(params.COMMIT_DATE)
-        - name: tuff-mirror
-          value: $(params.TUFF_MIRROR)
-        - name: tuff-root
-          value: $(params.TUFF_ROOT)
+        - name: tuf-mirror
+          value: $(params.tuf_MIRROR)
+        - name: tuf-root
+          value: $(params.tuf_ROOT)
         - name: rekor-public-key
           value: $(params.REKOR_PUBLIC_KEY)
+        - name: ctfe-public-key
+          value: $(params.CTFE_PUBLIC_KEY)
       workspaces: 
         - name: repository
           workspace: shared-data

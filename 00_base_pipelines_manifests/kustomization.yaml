@@ -4,4 +4,4 @@ namespace: securesign-pipelines-demo
 resources:
   - github-push-triggerbinding.yaml
   - namespace.yaml 
-  - sigstore-triggerbinding.yaml
+  - trusted-artifact-signer-triggerbinding.yaml
