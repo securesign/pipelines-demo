@@ -5,8 +5,9 @@ metadata:
 spec:
   params:
   - name: tlsVerify 
-    value: "true"
+    value: true
   - name: imageRepo
-    value: "quay.io/grpereir/pacman"
+    value: quay.io/grpereir/pacman
   - name: gitRepoHost 
-    value: "github.com"
+    value: github.com
+

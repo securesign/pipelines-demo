@@ -16,6 +16,7 @@ The goal of this pipeline is to build and sign an image leveraging tekton chains
     - `git`
     - `oc`
     - `kustomize`
+    - `yq`
     - `docker` or `podman` (for testing purposes on your local machine)
 - A github user with owner rights on the repo you wish to build
 - A Qauy account and repostiory to which the signed image and attestations will be pushed, for the given github repo you wish to build from
@@ -24,18 +25,24 @@ The goal of this pipeline is to build and sign an image leveraging tekton chains
 
 ### 1. Apply the base manifests
 
-As discussed in the repo for the previous pipeline we want to apply the base manifests. If you are confused on how to do this refer to the `README.md` in the `01_verify_soruce_code_pipeline` directory, but the command should be `kustomize build ./ | oc apply -f -` (from `00_base_pipelines_manifests` as the working directory).
+As discussed in the repo for the previous pipeline we want to apply the base manifests. If you are confused on how to do this refer to the [`README.md` in the `00_base_pipelines_manifests` directory](../00_base_pipelines_manifests/README.md), but the general concept is that after running the `generate-tas-triggerbinding.sh` script you should be able to apply the manifests: `oc apply --kustomize ./` (with `00_base_pipelines_manifests` as the current working directory).
 
 ### 2. Setting up your Github webhook
 
-Much like the previous pipeline, we will also use a Github webhook to kick off the build process. To breifly sumarize the process for the previous pipeline, you access the `settings` tab on the repository,  then select the `Webhooks` tab from the menu, and then select `Add webhook`. As before set the `Payload URL`, but this time enter `https://el-build-and-sign`, followed by your Openshift cluster's base domain. Add a passcode for the webhook in the `Secret` field, and then backup that data into a valid Kubernetes secret that is deployed into the `securesign-pipelines-demo` `namepsace` or whatever you have changed that value to. Refer to the previous [README file for the previous pipeline](../01_verify_source_code_pipeline/README.md) if you have any questions.
+Much like the previous pipeline, we will also use a Github webhook to kick off the build process. Refer to the previous [README file for the previous pipeline](../01_verify_source_code_pipeline/README.md) if you have any questions. Use the value of the following script for your `Payload URL`:
+
+```bash
+tuf_route_name=$(oc get routes -n tuf-system | grep 'tuf' | awk '{print $1}')
+tuf_route_hostname=$(oc get route -n tuf-system $tuf_route_name -o jsonpath='{.spec.host}')
+generic_route_hostname="${tuf_route_hostname:4:${#tuf_route_hostname}}/"
+github_webhook_payload_url="https://el-build-and-sign.$generic_route_hostname"
+echo $github_webhook_payload_url
+```
+
+It should be noted that you cannot reuse the Github webhook for the previous pipeline, it either needs to be a new webhook in the same repo, or a webhook in a seperate repo.
 
 
-### 3. Configure Tekton Chains
-
-If you look at the manifests in the `02_build_and_sign_image` directory, you will notice that the `build-and-sign-pipeline.yaml` file is actually a very basic pipeline, with only tasks for pulling source code and building / signing images. This is because the pipeline leverages Tekton chains to do the signing behind the scenes, allowing this build and sign task to be an implementation of the `buildah` `ClusterTask`. After navigating to the `02_build_and_sign_image` directory, ensure that the `targetNamespace` value in the `tektonChain.yaml` file (on line 6) matches the namespace in which openshift-pipelines was installed. Finally, you can install Tekton Chains by simply applying the configuration file in this directory: `oc apply -f tektonChain.yaml`.
-
-### 4. Configure the Quay repository
+### 3. Configure the Quay repository
 
 #### Create or verify that the Quay repo exists
 
@@ -49,25 +56,15 @@ First navigate to your Quay account, and select `Account settings` from the drop
 
 With a proper installation of `openshift-pipelines`, every namespace should have a `pipeline` `ServiceAccount` for it. This is the default `ServiceAccount` that pipelines will use in that namespace. Since we use that `pipeline` `ServiceAccount` in the `build-and-sign-pipeline`, we want to make sure that it has access to the pull-secret we downloaded and applied to the cluster, so that it has the permissions to push to your quay repository. Pull down the `pipeline` `ServiceAccount` as a yaml file: ` oc get serviceaccount pipeline -n securesign-pipelines-demo -o yaml > pipeline-service-account.yaml`. After this add an entry with the name of your `pull-secret` as both a `secret` and an `imagePullSecret`. After this re-deploy the `ServiceAccount` to update its changes: `oc apply -f ./pipeline-service-account.yaml`, which should allow that service account to now push to your Quay repo.
 
-### 5. Apply the verify source code pipeline manifests
+### 4. customize and apply the manifests
 
-Starting from the `02_build_and_sign_image` directory we need to make sure the values here match the configuration you wish to set.
+As before, a script has been provided to streamline this process:
 
-- Update the `host` value in the `build-and-sign-el-route.yaml` to deploy a valid route for the event listener to your cluster (pass your cluster base domain after the route name).
+```bash
+./gerenate-webhook-secret-and-customize-manifsts.sh
+oc apply --kustomize ./
+```
 
-- As with the previous pipeline, update the repository `full_name` value on line 31 of the `build-and-sign-el.yaml` file, to match the github repo you wish to build your application from.
-
-- Verify that you previously created a kubernetes secret for the webhook passcode for this new repository, and that it is properly referenced in the `build-and-sign-el.yaml` eventlistner on lines 20-23.
-
-- Make sure that the webhook secret is correctly referencing the kuberenetes secret you created for it on lines 20-23 of the `build-and-sign-el.yaml`
-
-- Enter your quay repository as the value of the `imageRepo` parameter in the `build-and-sign-triggerbinding.yaml` on line 10
-
-- Verify that you have correctly passed your `pull-secret` to the `PipelineRun` on lines 100-103 of the `build-and-sign-triggertemplate.yaml`.
-
-Once all these modifications have been made, you may build the files from the kustomization file and deploy them: `kustomize build ./ | oc apply -f -` (from `02_build_and_sign_image` as the working directory).
-
-
-### 6. Starting the pipeline
+### 5. Starting the pipeline
 
 If everything has been configured properly, any code changes that have been commited and pushed to github will trigger the pipeline and start the image build process.
