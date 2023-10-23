@@ -42,6 +42,8 @@ spec:
       name: rekor-public-key
     - description: URL for the ctfe public key
       name: ctfe-public-key
+    - description: Email for the OIDC user.
+      name: oidc-user-email
   resourcetemplates: 
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
@@ -88,6 +90,8 @@ spec:
             value: $(tt.params.rekor-public-key)
           - name: CTFE_PUBLIC_KEY
             value: $(tt.params.ctfe-public-key)
+          - name: OIDC_USER_EMAIL
+            value: $(tt.params.oidc-user-email)
         pipelineRef: 
           name: verify-source-code-pipeline
         serviceAccountName: pipeline 
