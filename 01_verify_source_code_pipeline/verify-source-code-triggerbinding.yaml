@@ -2,7 +2,9 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
   name: verify-source-code-triggerbinding
+  namespace: securesign-pipelines-demo
 spec:
   params:
     - name: oidc-user-email
       value: grpereir@redhat.com
+

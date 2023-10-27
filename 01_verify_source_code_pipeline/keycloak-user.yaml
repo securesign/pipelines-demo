@@ -3,7 +3,8 @@ kind: KeycloakUser
 metadata:
   labels:
     app: sso
-  name:
+  name: 
+  namespace: keycloak-system
 spec:
   realmSelector:
     matchLabels:
@@ -17,4 +18,4 @@ spec:
         value: 
     firstName: 
     lastName: 
-    username:
+    username: 
