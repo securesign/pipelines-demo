@@ -53,3 +53,22 @@ Set the following values:
     Active = checked (We will deliver event details when this hook is triggered.)
 Create the webhook
 setup_webhook
+<<<<<<< HEAD
+=======
+
+
+<< setup_quay
+Step 1: First verify or create a quay repository for holding the images
+
+Step 2: Setting up the robot account and deploying the pull-secret
+1. Quay account --> 2. Account settings --> 3. Robot Accounts --> 4. Create Robot Account --> 5. fill out name and description --> 
+6. click options (wheel icon right hand side) --> 7. Set Repository Permissions --> 8. Give ** WRITE ** permissions on the quay repo you previously created --> 
+9. View Credentials (from options wheel icon right hand side) --> 10. Kubernetes Secret -->  11. download yaml file (left option) -->
+12. apply secret: \`oc apply -f ~/Downloads/<downloaded-secret-name>.yaml -n securesign-pipelines-demo\`
+
+setup_quay
+
+#### Enable the `pipeline` ServiceAccount to be able to use the pull-secret
+
+With a proper installation of `openshift-pipelines`, every namespace should have a `pipeline` `ServiceAccount` for it. This is the default `ServiceAccount` that pipelines will use in that namespace. Since we use that `pipeline` `ServiceAccount` in the `build-and-sign-pipeline`, we want to make sure that it has access to the pull-secret we downloaded and applied to the cluster, so that it has the permissions to push to your quay repository. Pull down the `pipeline` `ServiceAccount` as a yaml file: ` oc get serviceaccount pipeline -n securesign-pipelines-demo -o yaml > pipeline-service-account.yaml`. After this add an entry with the name of your `pull-secret` as both a `secret` and an `imagePullSecret`. After this re-deploy the `ServiceAccount` to update its changes: `oc apply -f ./pipeline-service-account.yaml`, which should allow that service account to now push to your Quay repo.
+>>>>>>> 6598d07 (adding automation)

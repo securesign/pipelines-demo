@@ -115,8 +115,8 @@ spec:
   - name: gitRepoHost 
     value: github.com" > ./build-and-sign-triggerbinding.yaml
 
-rekor_url=$(oc get routes -n rekor-system | grep 'rekor' | awk '{print $2}')/
-fulcio_url=$(oc get routes -n fulcio-system | grep 'fulcio-server-http' | awk '{print $2}')/
+rekor_url=$(oc get routes -n rekor-system | grep 'rekor' | awk '{print $2}')
+fulcio_url=$(oc get routes -n fulcio-system | grep 'fulcio-server-http' | awk '{print $2}')
 
 echo "apiVersion: operator.tekton.dev/v1alpha1
 kind: TektonChain

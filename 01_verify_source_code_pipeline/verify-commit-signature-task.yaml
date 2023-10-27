@@ -24,6 +24,8 @@ spec:
       type: string
     - name: ctfe-public-key
       type: string
+    - name: oidc-user-email
+      type: string
   results:
     - name: log-file
       description: produce the log file as a task result
@@ -90,10 +92,10 @@ spec:
         
         echo $correct_rekor_entry
         if [[ -n $correct_rekor_entry ]]; then
-          curl $(params.fulcio-crt-pem-url) > /workspace/fulcio_v1.crt.pem
+          curl $(params.fulcio-crt-pem-url) > /workspace/fulcio-cert
           curl $(params.ctfe-public-key) > /workspace/ctfe.pub
           export SIGSTORE_CT_LOG_PUBLIC_KEY_FILE="/workspace/ctfe.pub"
-          export GITSIGN_FULCIO_ROOT="/workspace/fulcio_v1.crt.pem"
+          export GITSIGN_FULCIO_ROOT="/workspace/fulcio-cert"
           export SIGSTORE_REKOR_PUBLIC_KEY="$(params.rekor-public-key)"
           export GITSIGN_FULCIO_URL="$(params.fulcio-url)"
           export GITSIGN_OIDC_ISSUER="$(params.issuer-url)"
@@ -105,7 +107,7 @@ spec:
           git config --local gitsign.rekor $(params.rekor-url)
           git config --local gitsign.fulcio $(params.fulcio-url)
           git config --local gitsign.issuer $(params.issuer-url)
-          gitsign verify --certificate-identity=$(params.commit-author-email) --certificate-oidc-issuer=$(params.issuer-url) HEAD
+          gitsign verify --certificate-identity=$(params.oidc-user-email) --certificate-oidc-issuer=$(params.issuer-url) HEAD
         else
           echo "could not find a rekor entry within within 5 minutes of the commit date. Potential issues: redelivery of webhook event, event listener failed to start pipeline, etc."
           exit 1

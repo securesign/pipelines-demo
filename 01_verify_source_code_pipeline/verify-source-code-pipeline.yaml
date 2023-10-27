@@ -42,6 +42,8 @@ spec:
       type: string
     - name: CTFE_PUBLIC_KEY
       type: string
+    - name: OIDC_USER_EMAIL
+      type: string
   tasks: 
     - name: pull-source-code 
       params:
@@ -84,6 +86,8 @@ spec:
           value: $(params.REKOR_PUBLIC_KEY)
         - name: ctfe-public-key
           value: $(params.CTFE_PUBLIC_KEY)
+        - name: oidc-user-email
+          value: $(params.OIDC_USER_EMAIL)
       workspaces: 
         - name: repository
           workspace: shared-data

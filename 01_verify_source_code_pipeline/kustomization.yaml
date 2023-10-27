@@ -7,3 +7,5 @@ resources:
   - verify-commit-signature-task.yaml
   - verify-source-code-pipeline.yaml
   - verify-source-code-triggertemplate.yaml
+  - verify-source-code-triggerbinding.yaml
+  - ./keycloak-user.yaml

@@ -14,6 +14,8 @@ spec:
           ref: github-push-triggerbinding
         - kind: TriggerBinding
           ref: trusted-artifact-signer-triggerbinding
+        - kind: TriggerBinding
+          ref: verify-source-code-triggerbinding
       interceptors:
         - params:
             - name: secretRef

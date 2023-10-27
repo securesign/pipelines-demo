@@ -21,6 +21,13 @@ git config --global gitsign.rekor ${rekor_url}
 git config --global gitsign.fulcio ${fulcio_url}
 git config --global gitsign.issuer ${issuer_url}
 
+
+read -p "Please enter your name for your git config" git_users_name
+read -p "Please enter your your email for your git config" git_users_email
+
+git config --global user.name $git_users_name
+git config --global user.email $git_users_email
+
 # set the env variables
 
 export GITSIGN_FULCIO_URL=https://${fulcio_url}
@@ -29,3 +36,4 @@ export GITSIGN_OIDC_ISSUER=https://${issuer_url}
 export GITSIGN_REKOR_URL=https://${rekor_url}
 export GITSIGN_REKOR_PUBLIC_KEY=https://${rekor_public_key}
 export GITSIGN_FULCIO_ROOT=https://${fulcio_root}
+
