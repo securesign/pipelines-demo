@@ -28,16 +28,11 @@ You can begin by `cloning` down this `git` repository. If you have not already a
 
 ### 2. Setting up your Github webhook
 
-In this demo, we will trigger our pipelines and build process by leveraging the native webhook feature in Github. We can begin by navigating to the repo of your application. Above, it was noted that you must have `owner` or `admin` rights on this repository to access the `settings` tab. After clicking on the `Settings` tab, select the `Webhooks` tab from the menu on the left-hand side. Select `Add webhook` if you are deploying from scratch, or alternatively, if you are debugging an existing webhook select that. For the `Payload URL`, enter `https://el-build-and-sign`, followed by your Openshift cluster's base URL. This can be found by doing the following based on a route deployed in the `tuf-system` namespace:
-```bash 
-tuf_route_name=$(oc get routes -n tuf-system | grep 'tuf' | awk '{print $1}')
-tuf_route_hostname=$(oc get route -n tuf-system $tuf_route_name -o jsonpath='{.spec.host}')
-generic_route_hostname="${tuf_route_hostname:4:${#tuf_route_hostname}}/"
-github_webhook_payload_url="https://el-verify-source.$generic_route_hostname"
-echo $github_webhook_payload_url
-```
+In this demo, we will trigger our pipelines and build process by leveraging the native webhook feature in Github, and so we will need to start with a Github repo. For this demo we have provided a pacman repo for you to fork (https://github.com/font/pacman), however this will work with any public Github repo. Make sure to keep the repo public when you fork it. 
 
- Next, set the `Content type` to `application/json` and enter a `Secret` for the webhook. Make sure to save this value for the webhook secret, a script has been written for the next section to help you generate a valid kubernetes secret for it.
+After this, access repository's `settings` tab. After clicking on the `Settings` tab, select the `Webhooks` tab from the menu on the left-hand side. Select `Add webhook`. For the `Payload URL`, use the value generated from the script in this directory: `./get-webhook-payload.sh`
+
+Next, set the `Content type` to `application/json` and enter a `Secret` for the webhook. Make sure to save this value for the webhook secret, a script has been written for the next section to help you generate a valid kubernetes secret for it.
 
 ### 3. Apply the verify source code pipeline manifests
 
@@ -47,8 +42,8 @@ After making these two adjustments, you can build the kustomization overlay and 
 
 ### 4. Setting git configs
 
-The required local git configurations and environment variables can be set by runnign the `set-local-env` script as such: `. ./set-local-env.sh`
+The required local git configurations and environment variables can be set by runnign the `set-local-env` script as such: `./set-local-env.sh`. It will give you an option to set some of these configurations locally rather than globally, as it can be rather invasive to sign every commit for every repository with your managed sigstore stack, and even more invasive if you ever have to traverse the rekor log of these commits. If you choose to set these locally, you will need to copy the git configs it gives you to the local copy of the git repo with the webhook.
 
-If everything has been correctly setup, you should be able to sign commits in the usual way (`git commit -m "commit signing message" -S`), which should open up a browser tab where you will authenticate against your OIDC issuer, and then confirm that your commit was signed properly, as well as provide you with a TLOG index for your entry in rekor. As discussed in the introduction, this pipeline was meant to model 2 behaviours; firstly, that all commits are properly signed, and secondly, that all these signatures would be available in the designated rekor log. For this purpose, the `verify-commit-signature-task.yaml` contains a significant amount of code to traverse and process entries in the rekor log, since it is rather difficult to search through it for signed git commits specifically. If one does not wish to do this and simply verify commit signatures, you may comment out most of the code in this task (lines 37, 38, 40-107, and 109-113) to install `gitsign` and run `gitsign verify ...`.
+If everything has been correctly setup, you should be able to sign commits in the usual way (`git commit -m "commit signing message" -S`), which should open up a browser tab where you will authenticate against your OIDC issuer. If your development environment lacks a GUI / browser (such as a bastion or ssh), it will give you a link you can copy into another browser, where you will need to login to keycloak. When you used the `generate-webhook-secret-and-customize-manifests.sh` script, it used the credentials you provided to generate a `keycloak-user.yaml` file in this directory. Use those credentials to login.
 
-Finally, you should verify that `gitsign` recognizes these values and they have been properly set by calling `gitsign --version`. This should spit you out a list of the values set in the `gitsign` configuration, you can use this to help troubleshoot if you are having difficulties configuring gitsign to hook into the other elements of your `trusted-artifact-signer` stack.
+If all goes wellyour commit was signed properly, as well as provide you with a TLOG index for your entry in rekor. As discussed in the introduction, this pipeline was meant to model 2 behaviours; firstly, that all commits are properly signed, and secondly, that all these signatures would be available in the designated rekor log. For this purpose, the `verify-commit-signature-task.yaml` contains a significant amount of code to traverse and process entries in the rekor log, since it is rather difficult to search through it for signed git commits specifically. If one does not wish to do this and simply verify commit signatures, you may comment out most of the code in this task (lines 37, 38, 40-107, and 109-113) to install `gitsign` and run `gitsign verify ...`.

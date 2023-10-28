@@ -2,6 +2,7 @@ apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
   name: verify-source-code-triggertemplate
+  namespace: securesign-pipelines-demo
 spec:
   params: 
     - description: The git repository URL.
