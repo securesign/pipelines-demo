@@ -30,9 +30,9 @@ tuf_mirror=$(oc get routes -n tuf-system | grep 'tuf' | awk '{print $2}')
 rekor_public_key=${tuf_mirror}/targets/rekor-pubkey
 fulcio_root=${tuf_mirror}/targets/fulcio-cert
 
-git config --global gitsign.rekor ${rekor_url}
-git config --global gitsign.fulcio ${fulcio_url}
-git config --global gitsign.issuer ${issuer_url}
+git config --global gitsign.rekor https://${rekor_url}
+git config --global gitsign.fulcio https://${fulcio_url}
+git config --global gitsign.issuer https://${issuer_url}
 
 # set git identifiers
 

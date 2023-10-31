@@ -59,10 +59,10 @@ spec:
         ref: verify-source-code-triggertemplate
 " > ./verify-source-el.yaml
 
-server_api_url=$(oc whoami --show-server)
-host_plus_port="el-verify-source.apps.${server_api_url:12:${#server_api_url}}"
-host_plus_port_length=${#host_plus_port}
-host="${host_plus_port:0:$((host_plus_port_length - 5))}"
+tuf_route_name=$(oc get routes -n tuf-system | grep 'tuf' | awk '{print $1}')
+tuf_route_hostname=$(oc get route -n tuf-system $tuf_route_name -o jsonpath='{.spec.host}')
+generic_route_hostname="${tuf_route_hostname:4:${#tuf_route_hostname}}"
+host="el-verify-source.$generic_route_hostname"
 
 echo "apiVersion: route.openshift.io/v1
 kind: Route
