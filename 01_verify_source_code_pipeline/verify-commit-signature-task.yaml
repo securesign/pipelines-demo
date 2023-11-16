@@ -37,9 +37,9 @@ spec:
     script: |
 
       ## Installs
-      go install github.com/sigstore/rekor/cmd/rekor-cli@latest
-      go install github.com/itchyny/gojq/cmd/gojq@latest
-      go install github.com/sigstore/gitsign@latest
+      go install github.com/sigstore/rekor/cmd/rekor-cli@v1.3.1
+      go install github.com/itchyny/gojq/cmd/gojq@v0.12.13
+      go install github.com/sigstore/gitsign@v0.7.1
 
       ## Task Logging
       set -x 
