@@ -27,6 +27,8 @@ spec:
       type: string
     - name: oidc-user-email
       type: string
+    - name: commit_id
+      type: string  
   results:
     - name: log-file
       description: produce the log file as a task result
@@ -108,7 +110,7 @@ spec:
           git config --local gitsign.rekor $(params.rekor-url)
           git config --local gitsign.fulcio $(params.fulcio-url)
           git config --local gitsign.issuer $(params.issuer-url)
-          gitsign verify --certificate-identity=$(params.oidc-user-email) --certificate-oidc-issuer=$(params.issuer-url) HEAD
+          gitsign verify --certificate-identity=$(params.oidc-user-email) --certificate-oidc-issuer=$(params.issuer-url) $(params.commit_id)
         else
           echo "could not find a rekor entry within within 5 minutes of the commit date. Potential issues: redelivery of webhook event, event listener failed to start pipeline, etc."
           exit 1

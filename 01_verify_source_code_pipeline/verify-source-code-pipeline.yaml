@@ -89,6 +89,8 @@ spec:
           value: $(params.CTFE_PUBLIC_KEY)
         - name: oidc-user-email
           value: $(params.OIDC_USER_EMAIL)
+        - name: commit_id
+          value: $(params.COMMIT_SHA)
       workspaces: 
         - name: repository
           workspace: shared-data
