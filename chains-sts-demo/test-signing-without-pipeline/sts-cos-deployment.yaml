@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cosign-sts
+  namespace: cosign
+spec:
+  selector:
+    matchLabels:
+      app: cosign-sts
+  template:
+    metadata:
+      labels:
+        app: cosign-sts
+      annotations:
+        alpha.image.policy.openshift.io/resolve-names: '*'
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      serviceAccountName: cosign-sts
+      containers:
+      - args:
+        - -c
+        - env; cosign initialize --mirror=$COSIGN_MIRROR --root=$COSIGN_ROOT; while true; do sleep 86400; done
+        command:
+        - /bin/sh
+        name: cosign
+        image: cosign-rhel9:1.0.1-1716203248
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: AWS_ROLE_SESSION_NAME
+          value: signer-identity-session
+        - name: AWS_REGION
+          value: us-east-1
+        - name: OPENSHIFT_APPS_SUBDOMAIN
+          value: apps.platform-sts.pcbk.p1.openshiftapps.com
+        - name: OIDC_AUTHENTICATION_REALM
+          value: "sigstore"
+        - name: COSIGN_FULCIO_URL
+          value: "https://fulcio-server-trusted-artifact-signer.apps.platform-sts.pcbk.p1.openshiftapps.com"
+        - name: COSIGN_OIDC_ISSUER
+          value: https://rh-oidc.s3.us-east-1.amazonaws.com/27pqkqvfuq0o35s96a0ma22pso6c4713
+        - name: COSIGN_CERTIFICATE_OIDC_ISSUER
+          value: https://rh-oidc.s3.us-east-1.amazonaws.com/27pqkqvfuq0o35s96a0ma22pso6c4713 # same value as COSIGN_OIDC_ISSUER
+        - name: COSIGN_REKOR_URL
+          value: "https://rekor-server-trusted-artifact-signer.apps.platform-sts.pcbk.p1.openshiftapps.com"
+        - name: COSIGN_MIRROR
+          value: "https://tuf-trusted-artifact-signer.apps.platform-sts.pcbk.p1.openshiftapps.com"
+        - name: COSIGN_ROOT
+          value: "https://tuf-trusted-artifact-signer.apps.platform-sts.pcbk.p1.openshiftapps.com/root.json"
+        - name: COSIGN_YES
+          value: "true"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        runAsNonRoot: true
+      serviceAccount: cosign-sts
+      serviceAccountName: cosign-sts
+      terminationGracePeriodSeconds: 30

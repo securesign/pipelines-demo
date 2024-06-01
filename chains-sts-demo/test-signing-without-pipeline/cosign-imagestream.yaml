@@ -1,0 +1,28 @@
+# generated from: `oc import-image rhtas/cosign-rhel9:1.0.1-1716203248 --from=registry.redhat.io/rhtas/cosign-rhel9:1.0.1-1716203248 --confirm`
+apiVersion: v1
+items:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/display-name: cosign-rhel9
+    name: cosign-rhel9
+    namespace: cosign
+  spec:
+    lookupPolicy:
+      local: true
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: registry.redhat.io/rhtas/cosign-rhel9:1.0.1-1716203248
+      generation: 1
+      importPolicy:
+        importMode: Legacy
+      name: 1.0.1-1716203248
+      referencePolicy:
+        type: Source
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

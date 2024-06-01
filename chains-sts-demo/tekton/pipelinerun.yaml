@@ -1,0 +1,26 @@
+
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: clone-build-push-run-
+spec:
+  pipelineRef:
+    name: clone-build-push
+  serviceAccountName: rhtas-sa
+  # serviceAccountName: pipeline
+  workspaces:
+  - name: shared-data
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+  params:
+  - name: repo-url
+    value: https://github.com/Gregory-Pereira/pacman.git
+  - name: image-repo
+    value: quay.io/grpereir/pacman
+  - name: image-tag
+    value: latest

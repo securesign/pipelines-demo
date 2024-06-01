@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rhtas-sa
+  namespace: cosign
+secrets:
+  - name: grpereir-securesign-demo-pull-secret
