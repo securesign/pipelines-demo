@@ -1,0 +1,39 @@
+apiVersion: operator.tekton.dev/v1alpha1
+kind: TektonConfig
+metadata:
+  name: config
+spec:
+  chain:
+    disabled: false
+    options:
+      deployments:
+        tekton-chains-controller:
+          metadata:
+            creationTimestamp: null
+          spec:
+            selector: null
+            strategy: {}
+            template:
+              metadata:
+                creationTimestamp: null
+              spec:
+                containers:
+                - env:
+                  - name: TUF_ROOT
+                    value: /tuf
+                  name: tekton-chains-controller
+                  resources: {}
+                  volumeMounts:
+                  - mountPath: /tuf
+                    name: tuf
+                volumes:
+                - name: tuf
+          status: {}
+      disabled: false
+    signers.x509.fulcio.address: https://fulcio-server-trusted-artifact-signer.apps.platform-sts.pcbk.p1.openshiftapps.com
+    signers.x509.fulcio.enabled: true
+    signers.x509.fulcio.issuer: https://rh-oidc.s3.us-east-1.amazonaws.com/27pqkqvfuq0o35s96a0ma22pso6c4713
+    signers.x509.identity.token.file: /var/run/sigstore/cosign/oidc-token
+    signers.x509.tuf.mirror.url: https://tuf-trusted-artifact-signer.apps.platform-sts.pcbk.p1.openshiftapps.com
+    transparency.enabled: "true"
+    transparency.url: https://rekor-server-trusted-artifact-signer.apps.platform-sts.pcbk.p1.openshiftapps.com

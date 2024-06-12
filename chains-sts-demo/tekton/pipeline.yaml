@@ -1,0 +1,47 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: clone-build-push
+spec:
+  description: | 
+    This pipeline clones a git repo, builds a Docker image with Kaniko and
+    pushes it to a registry
+  params:
+  - name: repo-url
+    type: string
+  - name: image-repo
+    type: string
+  - name: image-tag
+    type: string
+  workspaces:
+  - name: shared-data
+  tasks:
+  - name: pull-source-code 
+    params:
+      - name: url 
+        value: $(params.repo-url)
+      - name: revision
+        value: 'master'
+      - name: deleteExisting
+        value: 'true'
+    taskRef: 
+      kind: ClusterTask
+      name: git-clone
+    workspaces: 
+      - name: output
+        workspace: shared-data
+  - name: build-push-image
+    runAfter: ["pull-source-code"]
+    params:
+      - name: IMAGE
+        value: '$(params.image-repo):$(params.image-tag)'
+      - name: DOCKERFILE
+        value: "./docker/Dockerfile"
+    taskRef:
+      kind: ClusterTask
+      name: buildah
+    workspaces:
+      - name: source
+        workspace: shared-data
+  workspaces:
+    - name: shared-data
